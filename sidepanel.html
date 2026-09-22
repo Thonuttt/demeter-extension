@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Demeter</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <div class="panel">
+
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div style="display:flex;align-items:center;">
+            <span class="brand-title">Demeter</span>
+            <span class="brand-badge">v1.0</span>
+          </div>
+          <div class="brand-sub">Dev Request Interceptor</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="global-toggle-btn" class="global-toggle">
+          <span id="global-dot" class="dot"></span>
+          <span id="global-status-text">Active</span>
+        </button>
+        <div class="header-io">
+          <button id="export-btn" class="icon-btn" title="Export JSON Config">⭳</button>
+          <label class="icon-btn" title="Import JSON Config" style="cursor:pointer;">
+            ⭱
+            <input type="file" id="import-file" accept=".json" class="hidden">
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <button id="new-rule-btn" class="btn-primary">+ New Rule</button>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-rules" placeholder="Filter endpoint or method..." aria-label="Filter rules by endpoint or method">
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button id="tab-rules" class="tab active" data-tab="rules">
+        Rules (<span id="rules-count-badge">0</span>)
+      </button>
+      <button id="tab-simulator" class="tab" data-tab="simulator">
+        Live Simulator
+      </button>
+    </div>
+
+    <div class="main">
+      <div id="view-rules" class="view">
+        <div id="rules-container"></div>
+      </div>
+
+      <div id="view-simulator" class="view hidden">
+        <div class="sim-box">
+          <div class="sim-row">
+            <select id="sim-method" aria-label="HTTP method to simulate">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+            <input type="text" id="sim-url" value="/api/users/123" placeholder="/api/endpoint..." aria-label="URL to simulate">
+          </div>
+          <button id="sim-submit-btn" class="btn-secondary">▶ Dispatch Test Request</button>
+        </div>
+
+        <div id="sim-output-container" class="sim-output hidden">
+          <div class="sim-output-head">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="sim-status-code" class="status-pill status-ok">200 OK</span>
+              <span id="sim-latency" class="mono" style="color:var(--amber-400);font-size:11px;">0ms</span>
+            </div>
+            <span id="sim-rule-match" class="mono" style="font-size:10px;color:var(--text-400);"></span>
+          </div>
+          <div id="sim-actions-executed" class="rule-badges"></div>
+          <div>
+            <div class="sim-body-label">Response Payload:</div>
+            <pre id="sim-response-body" class="sim-body">{}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-stats">
+        <span>🔗 <span id="stat-intercepted">0</span></span>
+        <span>⚠ <span id="stat-faults">0</span></span>
+      </div>
+      <div>Last hit: <span id="last-hit-time">—</span></div>
+    </footer>
+
+    <!-- Rule Editor Modal -->
+    <div id="rule-editor-modal" class="modal hidden">
+      <div class="modal-head">
+        <span id="modal-title" class="modal-title">Edit Fault Rule</span>
+        <button id="close-modal-btn" class="icon-btn">✕</button>
+      </div>
+
+      <form id="rule-form" class="modal-body">
+        <input type="hidden" id="edit-rule-id">
+
+        <div class="field-group">
+          <label class="field-label" style="cursor:default;">Endpoint Targeting</label>
+          <div class="sim-row">
+            <select id="form-method" aria-label="HTTP method to match">
+              <option value="ALL">ALL</option>
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+            <input type="text" id="form-pattern" required placeholder="/api/users/*" aria-label="URL pattern to match">
+          </div>
+          <div class="radio-row">
+            <label><input type="radio" name="matchType" value="wildcard" checked> Wildcard</label>
+            <label><input type="radio" name="matchType" value="exact"> Exact Match</label>
+            <label><input type="radio" name="matchType" value="regex"> Regex</label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-head">
+            <label class="field-label"><input type="checkbox" id="enable-mock"> Mock Response Override</label>
+            <span class="tag-note" style="color:var(--indigo-400);">Payload Swap</span>
+          </div>
+          <div id="section-mock" class="field-section hidden">
+            <div class="grid-2">
+              <div>
+                <label class="sub-label" for="mock-status">Status Code</label>
+                <select id="mock-status">
+                  <option value="200">200 OK</option>
+                  <option value="201">201 Created</option>
+                  <option value="400">400 Bad Request</option>
+                  <option value="401">401 Unauthorized</option>
+                  <option value="403">403 Forbidden</option>
+                  <option value="404">404 Not Found</option>
+                  <option value="429">429 Too Many Requests</option>
+                  <option value="500">500 Internal Error</option>
+                  <option value="503">503 Service Unavailable</option>
+                </select>
+              </div>
+              <div>
+                <label class="sub-label" for="mock-content-type">Content-Type</label>
+                <select id="mock-content-type">
+                  <option value="application/json">application/json</option>
+                  <option value="text/plain">text/plain</option>
+                  <option value="application/xml">application/xml</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="sub-label" for="mock-body">JSON Response Body</label>
+              <textarea id="mock-body" rows="4" placeholder="{}"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-head">
+            <label class="field-label"><input type="checkbox" id="enable-latency"> Latency Injection</label>
+            <span class="tag-note" style="color:var(--amber-400);">Delay</span>
+          </div>
+          <div id="section-latency" class="field-section hidden">
+            <div class="sim-row" style="align-items:flex-end;">
+              <div style="flex:1;">
+                <label class="sub-label" for="latency-ms">Delay (ms)</label>
+                <input type="number" id="latency-ms" value="350" min="0" max="30000">
+              </div>
+              <label style="display:flex;align-items:center;gap:6px;font-size:11px;padding-bottom:6px;">
+                <input type="checkbox" id="latency-jitter"> Random Jitter (±30%)
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-head">
+            <label class="field-label"><input type="checkbox" id="enable-failure"> Failure Simulation Rate</label>
+            <span class="tag-note" style="color:var(--red-400);">Chaos</span>
+          </div>
+          <div id="section-failure" class="field-section hidden">
+            <div>
+              <div class="range-row">
+                <label for="failure-rate">Failure Percentage</label>
+                <span id="failure-rate-val" class="range-val">50%</span>
+              </div>
+              <input type="range" id="failure-rate" min="1" max="100" value="50">
+            </div>
+            <div class="radio-row">
+              <label><input type="radio" name="failType" value="network" checked> Network Error</label>
+              <label><input type="radio" name="failType" value="5xx"> Force 500 Status</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-head">
+            <label class="field-label"><input type="checkbox" id="enable-malformed"> Malformed Data Mode</label>
+            <span class="tag-note" style="color:var(--purple-400);">Truncate/Corrupt</span>
+          </div>
+          <p class="help-text">Corrupts JSON syntax or truncates payload to test client parsing resilience.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancel-modal-btn" class="btn-ghost">Cancel</button>
+          <button type="submit" class="btn-primary">Save Rule</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="toast" class="toast">
+      <span id="toast-msg">Saved</span>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

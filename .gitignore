@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Build artifacts (if you add a bundler later)
+node_modules/
+dist/
+*.log
+
+# Packed extension files (regenerate from source instead of committing these)
+*.zip
+*.crx
+*.pem
