@@ -205,7 +205,8 @@
             <label class="field-label"><input type="checkbox" id="enable-malformed"> Malformed Data Mode</label>
             <span class="tag-note" style="color:var(--purple-400);">Truncate/Corrupt</span>
           </div>
-          <p class="help-text">Corrupts JSON syntax or truncates payload to test client parsing resilience.</p>
+          <p class="help-text">Corrupts JSON syntax or truncates payload to test client parsing resilience.<br>
+            Works with or without Mock Response Override — without a mock, it corrupts the real server's response instead.</p>
         </div>
 
         <div class="modal-footer">

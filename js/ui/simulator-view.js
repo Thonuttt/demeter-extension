@@ -59,6 +59,10 @@ submitBtn.addEventListener('click', async () => {
       actionsEl.innerHTML += `<span class="badge badge-malformed">Payload Corrupted</span>`;
     }
     el('sim-response-body').textContent = outcome.body;
+    } else if (outcome.kind === 'malformed-passthrough') {
+    setStatusPill('200 OK (Corrupted)', 'warn');
+    actionsEl.innerHTML = `<span class="badge badge-malformed">Real Response Corrupted</span>`;
+    el('sim-response-body').textContent = outcome.body;
   } else {
     setStatusPill('200 OK (Real)', 'ok');
     el('sim-response-body').textContent = JSON.stringify(

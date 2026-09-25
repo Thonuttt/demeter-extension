@@ -99,6 +99,20 @@ window.fetch = async function (input, init = {}) {
     });
   }
 
+  // Malformed Data Mode WITHOUT a mock: let the real request go through,
+  // then corrupt the real response before the page ever sees it.
+  if (rule.actions.malformed.enabled) {
+    reportHit(true);
+    const realResponse = await realFetch(input, init);
+    const realText = await realResponse.text();
+    const corrupted = realText.substring(0, Math.floor(realText.length / 2)) + ' ... [TRUNCATED_JSON_MALFORMED]';
+    return new Response(corrupted, {
+      status: realResponse.status,
+      statusText: realResponse.statusText,
+      headers: realResponse.headers,
+    });
+  }
+
   reportHit(delay > 0);
   return realFetch(input, init);
 };

@@ -91,5 +91,16 @@ export function resolveOutcome(rules, method, url, globalActive) {
     };
   }
 
+    if (rule.actions.malformed.enabled) {
+    const placeholderReal = JSON.stringify({ id: 123, name: 'Original Response Data' });
+    return {
+      matched: true,
+      rule,
+      delayMs,
+      kind: 'malformed-passthrough',
+      body: applyMalformation(placeholderReal),
+    };
+  }
+
   return { matched: true, rule, delayMs, kind: 'passthrough-delayed' };
 }
