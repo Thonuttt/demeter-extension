@@ -5,11 +5,19 @@
 
 import { loadState, saveState } from './storage-service.js';
 
+const STORAGE_KEY = 'demeter_state_v1';
+
 let state = null;
 const listeners = new Set();
 
 export async function initState() {
   state = await loadState();
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes[STORAGE_KEY]) {
+      state = changes[STORAGE_KEY].newValue;
+      notify();
+    }
+  });
   return state;
 }
 
